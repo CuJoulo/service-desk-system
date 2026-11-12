@@ -1,0 +1,32 @@
+name: Service-desk CI Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+
+    - name: Verify Project Structure
+      run: |
+        echo "Перевірка обов'язкових файлів системи Service-desk..."
+        test -f README.md || exit 1
+        test -f .gitignore || exit 1
+        test -f src/server/models/Ticket.js || exit 1
+        echo "Всі критичні модулі на місці!"
+
+    - name: Run SLA Unit Tests
+      run: |
+        node tests/sla.test.js
