@@ -1,13 +1,18 @@
-name: Service-desk CI Pipeline
+name: Service-desk CI/CD Pipeline
 
 on:
   push:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   test:
+    name: Unit Tests & Code Validation
     runs-on: ubuntu-latest
 
     steps:
@@ -19,14 +24,29 @@ jobs:
       with:
         node-version: '18'
 
-    - name: Verify Project Structure
+    - name: Check Syntax & Structure
       run: |
-        echo "Перевірка обов'язкових файлів системи Service-desk..."
+        echo "Перевірка файлів системи..."
         test -f README.md || exit 1
-        test -f .gitignore || exit 1
-        test -f src/server/models/Ticket.js || exit 1
-        echo "Всі критичні модулі на місці!"
+        test -f src/server/services/slaService.js || exit 1
+        node -c src/server/services/slaService.js
+        echo "Синтаксис та структура перевірені успішно!"
 
     - name: Run SLA Unit Tests
       run: |
         node tests/sla.test.js
+
+    - name: Package project artifact
+      if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+      run: |
+        mkdir -p dist
+        zip -r dist/service-desk-release.zip src tests docs README.md .gitignore
+        echo "Артефакт упаковано в dist/service-desk-release.zip"
+
+    - name: Upload Build Artifact
+      if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+      uses: actions/upload-artifact@v4
+      with:
+        name: service-desk-artifact
+        path: dist/service-desk-release.zip
+        retention-days: 7
