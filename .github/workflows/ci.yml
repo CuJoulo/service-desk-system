@@ -24,7 +24,8 @@ jobs:
         node-version: '18'
 
     - name: Check code style (ESLint)
-      run: npx --yes eslint@8 --no-eslintrc --env node,browser,es2022 --rule "no-var: error" --rule "semi: warn" --rule "no-unused-vars: [error, {caughtErrors: none}]" src tests
+      run: |
+        npx --yes eslint@8 --no-eslintrc --env node,browser,es2022 --rule "no-var: error" --rule "semi: warn" --rule "no-unused-vars: [error, {caughtErrors: none}]" src tests
 
   test:
     name: Unit Tests & Code Validation
